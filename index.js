@@ -47,27 +47,27 @@ async function run() {
 
     // use verify admin after verifyToken
     const verifyAdmin = async (req, res, next) => {
-        const email = req.decoded.email;
-        const query = { email: email };
-        const user = await userCollection.findOne(query);
-        const isAdmin = user?.role === 'admin';
-        if (!isAdmin) {
-          return res.status(403).send({ message: 'forbidden access' });
-        }
-        next();
+      const email = req.decoded.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      const isAdmin = user?.role === "admin";
+      if (!isAdmin) {
+        return res.status(403).send({ message: "forbidden access" });
       }
+      next();
+    };
 
-      // use verify admin after verifyToken
+    // use verify admin after verifyToken
     const verifyCreator = async (req, res, next) => {
-        const email = req.decoded.email;
-        const query = { email: email };
-        const user = await userCollection.findOne(query);
-        const isCreator = user?.role === 'creator';
-        if (!isCreator) {
-          return res.status(403).send({ message: 'forbidden access' });
-        }
-        next();
+      const email = req.decoded.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      const isCreator = user?.role === "creator";
+      if (!isCreator) {
+        return res.status(403).send({ message: "forbidden access" });
       }
+      next();
+    };
 
     //routes
 
@@ -80,19 +80,6 @@ async function run() {
       res.send({ token });
     });
 
-    //contests api
-
-    app.get("/contests", async (req, res) => {
-      const result = await contestCollection.find().toArray();
-      res.send(result);
-    });
-
-    app.post("/contests", async (req, res) => {
-      const item = req.body;
-      const result = await contestCollection.insertOne(item);
-      res.send(result);
-    });
-
     //user api
 
     app.get("/users", verifyToken, async (req, res) => {
@@ -102,38 +89,38 @@ async function run() {
 
     //for admin
 
-    app.get('/users/admin/:email', verifyToken, async (req, res) => {
-        const email = req.params.email;
-  
-        if (email !== req.decoded.email) {
-          return res.status(403).send({ message: 'forbidden access' })
-        }
-  
-        const query = { email: email };
-        const user = await userCollection.findOne(query);
-        let admin = false;
-        if (user) {
-          admin = user?.role === 'admin';
-        }
-        res.send({ admin });
-      })
+    app.get("/users/admin/:email", verifyToken, async (req, res) => {
+      const email = req.params.email;
 
-      //for creator
-      app.get('/users/creator/:email', verifyToken, async (req, res) => {
-        const email = req.params.email;
-  
-        if (email !== req.decoded.email) {
-          return res.status(403).send({ message: 'forbidden access' })
-        }
-  
-        const query = { email: email };
-        const user = await userCollection.findOne(query);
-        let creator = false;
-        if (user) {
-          creator = user?.role === 'creator';
-        }
-        res.send({ creator });
-      })
+      if (email !== req.decoded.email) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      let admin = false;
+      if (user) {
+        admin = user?.role === "admin";
+      }
+      res.send({ admin });
+    });
+
+    //for creator
+    app.get("/users/creator/:email", verifyToken, async (req, res) => {
+      const email = req.params.email;
+
+      if (email !== req.decoded.email) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      let creator = false;
+      if (user) {
+        creator = user?.role === "creator";
+      }
+      res.send({ creator });
+    });
 
     app.post("/users", async (req, res) => {
       const user = req.body;
@@ -163,14 +150,12 @@ async function run() {
       console.log(user);
 
       if (result.modifiedCount > 0) {
-        res
-          .status(200)
-          .json({
-            message: `"${user.name
-              .split(/\s+/)
-              .slice(0, 1)
-              .join(" ")}" is now ${role}.`,
-          });
+        res.status(200).json({
+          message: `"${user.name
+            .split(/\s+/)
+            .slice(0, 1)
+            .join(" ")}" is now ${role}.`,
+        });
       } else {
         res.status(404).json({ message: "User not found." });
       }
@@ -183,21 +168,65 @@ async function run() {
       res.send(result);
     });
 
-
     //contests api
 
-    app.patch('/contests/approved/:id', async (req, res) => {
-        const id = req.params.id;
-        const filter = { _id: new ObjectId(id) };
-        const updatedDoc = {
-          $set: {
-            status: 'approved'
-          }
-        }
-        const result = await contestCollection.updateOne(filter, updatedDoc);
-        res.send(result);
-      })
+    app.get("/contests", async (req, res) => {
+      const result = await contestCollection.find().toArray();
+      res.send(result);
+    });
 
+    app.get("/contests/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await contestCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.post("/contests", async (req, res) => {
+      const item = req.body;
+      const result = await contestCollection.insertOne(item);
+      res.send(result);
+    });
+
+    app.patch("/contests/approved/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          status: "approved",
+        },
+      };
+      const result = await contestCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
+
+    app.patch("/contests/:id", async (req, res) => {
+      const items = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          name: items.name,
+          image: items.image,
+          price: items.price,
+          prize: items.prize,
+          tag: items.tag,
+          date: items.date,
+          description: items.description,
+          task: items.task,
+        },
+      };
+
+      const result = await contestCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
+
+    app.delete("/Contests/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await contestCollection.deleteOne(query);
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
