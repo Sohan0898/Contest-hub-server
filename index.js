@@ -45,6 +45,30 @@ async function run() {
       });
     };
 
+    // use verify admin after verifyToken
+    const verifyAdmin = async (req, res, next) => {
+        const email = req.decoded.email;
+        const query = { email: email };
+        const user = await userCollection.findOne(query);
+        const isAdmin = user?.role === 'admin';
+        if (!isAdmin) {
+          return res.status(403).send({ message: 'forbidden access' });
+        }
+        next();
+      }
+
+      // use verify admin after verifyToken
+    const verifyCreator = async (req, res, next) => {
+        const email = req.decoded.email;
+        const query = { email: email };
+        const user = await userCollection.findOne(query);
+        const isCreator = user?.role === 'creator';
+        if (!isCreator) {
+          return res.status(403).send({ message: 'forbidden access' });
+        }
+        next();
+      }
+
     //routes
 
     // jwt api
@@ -75,6 +99,41 @@ async function run() {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
+
+    //for admin
+
+    app.get('/users/admin/:email', verifyToken, async (req, res) => {
+        const email = req.params.email;
+  
+        if (email !== req.decoded.email) {
+          return res.status(403).send({ message: 'forbidden access' })
+        }
+  
+        const query = { email: email };
+        const user = await userCollection.findOne(query);
+        let admin = false;
+        if (user) {
+          admin = user?.role === 'admin';
+        }
+        res.send({ admin });
+      })
+
+      //for creator
+      app.get('/users/creator/:email', verifyToken, async (req, res) => {
+        const email = req.params.email;
+  
+        if (email !== req.decoded.email) {
+          return res.status(403).send({ message: 'forbidden access' })
+        }
+  
+        const query = { email: email };
+        const user = await userCollection.findOne(query);
+        let creator = false;
+        if (user) {
+          creator = user?.role === 'creator';
+        }
+        res.send({ creator });
+      })
 
     app.post("/users", async (req, res) => {
       const user = req.body;
@@ -123,6 +182,22 @@ async function run() {
       const result = await userCollection.deleteOne(query);
       res.send(result);
     });
+
+
+    //contests api
+
+    app.patch('/contests/approved/:id', async (req, res) => {
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) };
+        const updatedDoc = {
+          $set: {
+            status: 'approved'
+          }
+        }
+        const result = await contestCollection.updateOne(filter, updatedDoc);
+        res.send(result);
+      })
+
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
