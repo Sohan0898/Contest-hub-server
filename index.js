@@ -29,6 +29,9 @@ async function run() {
     // await client.connect();
     const userCollection = client.db("ContestDB").collection("users");
     const contestCollection = client.db("ContestDB").collection("contests");
+    const participateCollection = client
+      .db("ContestDB")
+      .collection("participates");
 
     // middlewares
     const verifyToken = (req, res, next) => {
@@ -168,11 +171,55 @@ async function run() {
       res.send(result);
     });
 
+    //participates api
+
+    app.get("/participates", async (req, res) => {
+      const { email } = req.query;
+
+      const query = {};
+
+      if (email) {
+        query.$or = [{ creatorEmail: email }, { participateEmail: email }];
+      }
+
+      const result = await participateCollection.find(query).toArray();
+
+      console.log(result);
+      res.send(result);
+    });
+
+    app.post("/participates", async (req, res) => {
+      const item = req.body;
+      const result = await participateCollection.insertOne(item);
+      res.send(result);
+    });
+
     //contests api
 
     app.get("/contests", async (req, res) => {
-      const result = await contestCollection.find().toArray();
+      const { email } = req.query;
+      const query = email ? { email } : {};
+      const result = await contestCollection.find(query).toArray();
+      console.log(result);
       res.send(result);
+    });
+
+    //sereach contest in banner api
+
+    app.get("/contests/search", async (req, res) => {
+      const { query } = req.query;
+
+      try {
+        const contests = await contestCollection
+          .find({ tag: { $regex: new RegExp(query, "i") } })
+          .project({ name: 1 })
+          .toArray();
+
+        res.json(contests);
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
     });
 
     app.get("/contests/:id", async (req, res) => {
