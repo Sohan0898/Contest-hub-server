@@ -85,7 +85,7 @@ async function run() {
 
     //user api
 
-    app.get("/users", verifyToken, async (req, res) => {
+    app.get("/users", async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
@@ -164,6 +164,20 @@ async function run() {
       }
     });
 
+    //update user info
+    app.patch("/users/:id", async (req, res) => {
+      const user = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          ...user,
+        },
+      };
+      const result = await userCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
+
     app.delete("/users/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -185,6 +199,18 @@ async function run() {
       const result = await participateCollection.find(query).toArray();
 
       console.log(result);
+      res.send(result);
+    });
+
+    app.patch("/participates/winner/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          role: "winner",
+        },
+      };
+      const result = await participateCollection.updateOne(filter, updatedDoc);
       res.send(result);
     });
 
@@ -212,7 +238,7 @@ async function run() {
       try {
         const contests = await contestCollection
           .find({ tag: { $regex: new RegExp(query, "i") } })
-          .project({ name: 1 })
+          .project({ name: 1, image: 1 })
           .toArray();
 
         res.json(contests);
