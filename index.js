@@ -138,7 +138,7 @@ async function run() {
     });
 
     //uodate user role
-    app.patch("/users/updateRole/:id", async (req, res) => {
+    app.patch("/users/updateRole/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const { role } = req.body;
       const filter = { _id: new ObjectId(id) };
@@ -165,7 +165,7 @@ async function run() {
     });
 
     //update user info
-    app.patch("/users/:id", async (req, res) => {
+    app.patch("/users/:id", verifyToken, async (req, res) => {
       const user = req.body;
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
@@ -178,7 +178,7 @@ async function run() {
       res.send(result);
     });
 
-    app.delete("/users/:id", async (req, res) => {
+    app.delete("/users/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await userCollection.deleteOne(query);
@@ -202,7 +202,7 @@ async function run() {
       res.send(result);
     });
 
-    app.patch("/participates/winner/:id", async (req, res) => {
+    app.patch("/participates/winner/:id", verifyToken,  async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updatedDoc = {
@@ -261,7 +261,7 @@ async function run() {
       res.send(result);
     });
 
-    app.patch("/contests/approved/:id", async (req, res) => {
+    app.patch("/contests/approved/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updatedDoc = {
@@ -273,7 +273,7 @@ async function run() {
       res.send(result);
     });
 
-    app.patch("/contests/:id", async (req, res) => {
+    app.patch("/contests/:id", verifyToken, async (req, res) => {
       const items = req.body;
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
@@ -294,7 +294,7 @@ async function run() {
       res.send(result);
     });
 
-    app.delete("/Contests/:id", async (req, res) => {
+    app.delete("/Contests/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await contestCollection.deleteOne(query);
